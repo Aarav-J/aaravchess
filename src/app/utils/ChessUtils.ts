@@ -2,6 +2,14 @@ import { Chess, Color, PieceSymbol, Square } from "chess.js";
 
 type ChessPiece = 'p' | 'r' | 'n' | 'b' | 'q' | 'k';
 
+const characters = { 
+    "p": "♟",
+    "r": "♜",
+    "n": "♞",
+    "b": "♝",
+    "q": "♛",
+    "k": "♚",
+}
 export const get_captured_pieces = (game: Chess, color: 'white' | 'black', captured: Record<ChessPiece, number>) => { 
     // const captured: Record<ChessPiece, number> = {'p': 0, 'r': 0, 'n': 0, 'b': 0, 'q': 0, 'k': 0};
     const history = game.history({verbose: true});
@@ -17,7 +25,7 @@ export const get_captured_pieces = (game: Chess, color: 'white' | 'black', captu
 export const formatCapturedPieces = (captured: Record<ChessPiece, number>) => {
     
     return Object.entries(captured).map(([piece, count]) => {
-        return `${piece.toUpperCase().repeat(count)}`;
+        return `${characters[piece as ChessPiece].repeat(count)}`;
     }).join('');
 }
 

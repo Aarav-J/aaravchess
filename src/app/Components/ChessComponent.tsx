@@ -2,9 +2,11 @@
 import { useState } from "react";
 import { Chessboard } from "react-chessboard";
 import { Chess, Color, Piece } from "chess.js";
+import useStore, { States } from "../store";
 import Image from "next/image";
 import { get_captured_pieces,formatCapturedPieces, calculateMaterial, findPiece } from "../utils/ChessUtils";
 import GameHistory from "./GameHistory";
+
 // import { useEffect } from "react";
 type Move = { 
     from: string;
@@ -14,13 +16,24 @@ type Move = {
 type BoardStyle = {
     [key: string]: {[key: string] : string};
 }
+const characters = { 
+    "p": "♟",
+    "r": "♜",
+    "n": "♞",
+    "b": "♝",
+    "q": "♛",
+    "k": "♚",
+}
 const ChessComponent = () => { 
-    const [game, setGame] = useState(new Chess());
+    // const [game, setGame] = useState(new Chess());
+    const game = useStore(state => state.game);
+    const setGame = useStore(state => state.setGame);
     // const [color, setColor] = useState("white");
     const [whiteCaptured, setWhiteCaptured] =  useState({p: 0, r: 0, n: 0, b: 0, q: 0, k: 0});
     const [blackCaptured, setBlackCaptured] = useState({p: 0, r: 0, n: 0, b: 0, q: 0, k: 0});
     const [boardStyle, setBoardStyle] = useState<BoardStyle>({});
     const [diff, setDiff] = useState(0);
+    const [history, setHistory] = useState<string[]>([]);
     const [status, setStatus] = useState("white to move"); 
     // const [bKing, setBKing] = useState("e8");
     // const [wKing, setWKing] = useState("e1");
@@ -64,48 +77,59 @@ const ChessComponent = () => {
         // }
     }
     const makeMove = (move: Move) => {
-        const copyGame = new Chess(game.fen());
-        // copyGame.
-        const result = copyGame.move(move);
         
-        let color = copyGame.turn() === "w" ? "white" : "black";
-        if(result) { 
-            game.move(move)
-            let copyBoardStyle: BoardStyle = {};
-            copyBoardStyle = {[result.from]: { backgroundColor: "#CFD17B" }, [result.to]: { backgroundColor: "#ACA249" }}; 
-            findPiece(copyGame, "k", "b")[0]
-            findPiece(copyGame, "k", "w")[0]
+        const copyGame = new Chess(game.fen());
+        const result = copyGame.move(move);
+        let copyHistory = [...history];
+        if (result) {
+            // console.log(copyGame.history())
+            copyHistory.push(copyGame.history()[0]);
+            const color = copyGame.turn() === "w" ? "white" : "black";
             
-            setWhiteCaptured(get_captured_pieces(copyGame, "white", whiteCaptured));
-            setBlackCaptured(get_captured_pieces(copyGame, "black", blackCaptured));
-            setDiff(calculateMaterial(whiteCaptured) - calculateMaterial(blackCaptured));
+           
+            const newWhiteCaptured = get_captured_pieces(copyGame, "white", whiteCaptured);
+            const newBlackCaptured = get_captured_pieces(copyGame, "black", blackCaptured);
             
-            setStatus(`${color} to move`)
-            if (copyGame.inCheck()) { 
-                setInCheck(color === "black" ? "black" : "white"); 
+          
+            let copyBoardStyle: BoardStyle = {
+                [result.from]: { backgroundColor: "#CFD17B" }, 
+                [result.to]: { backgroundColor: "#ACA249" }
+            };
+            
+           
+            let newStatus = `${color} to move`;
+            let newInCheck = 'none';
+            
+            if (copyGame.inCheck()) {
+                newInCheck = color === "black" ? "black" : "white";
                 const position = findPiece(copyGame, 'k', color[0] as Color)[0] as string;
-                copyBoardStyle[position] = {backgroundColor: "#FF424B"}; 
-                setStatus(color === "black" ? "Black is in check" : "White is in check");
-                
-            } else { 
-                setInCheck('none');
+                copyBoardStyle[position] = {backgroundColor: "#FF424B"};
+                newStatus = color === "black" ? "Black is in check" : "White is in check";
             }
-            if(copyGame.isGameOver()) {
-                if(copyGame.isCheckmate()) { 
-                    setStatus(color === "black" ? "White wins" : "Black wins");
-                } else if(copyGame.isStalemate()) { 
-                    setStatus("Stalemate");
+            
+            if (copyGame.isGameOver()) {
+                if (copyGame.isCheckmate()) {
+                    newStatus = color === "black" ? "White wins" : "Black wins";
+                } else if (copyGame.isStalemate()) {
+                    newStatus = "Stalemate";
+                } else if (copyGame.isInsufficientMaterial()) {
+                    newStatus = "Insufficient material";
+                } else if (copyGame.isThreefoldRepetition()) {
+                    newStatus = "Threefold repetition";
                 }
-                else if(copyGame.isInsufficientMaterial()) {
-                    setStatus("Insufficient material");
-                }
-                else if(copyGame.isThreefoldRepetition()) {
-                    setStatus("Threefold repetition");
-                }
-                
             }
+            
+            
+            setGame(copyGame);
+            setWhiteCaptured(newWhiteCaptured);
+            setBlackCaptured(newBlackCaptured);
+            setDiff(calculateMaterial(newWhiteCaptured) - calculateMaterial(newBlackCaptured));
+            setStatus(newStatus);
+            setInCheck(newInCheck);
+            setHistory(copyHistory);
             setBoardStyle(copyBoardStyle);
         }
+        
         return result;
     }
 
@@ -127,7 +151,7 @@ const ChessComponent = () => {
                     <Image src="https://ui-avatars.com/api/?size=32&name=B" alt="black" width={32} height={32}/>
                     <span className="text-foreground">Black</span>
                   </div>
-                  <span className="text-foreground">{formatCapturedPieces(whiteCaptured)} {diff > 0 ? `+${diff}` : ""} </span>
+                  <span className="text-foreground text-xl">{formatCapturedPieces(whiteCaptured)} {diff > 0 ? `+${diff}` : ""} </span>
                 </div>
                 
                 <Chessboard
@@ -150,10 +174,10 @@ const ChessComponent = () => {
                     <Image src="https://ui-avatars.com/api/?size=32&name=W" alt="white" width={32} height={32}/>
                     <span className="text-foreground">White</span>
                   </div>
-                  <span className="text-foreground">{formatCapturedPieces(blackCaptured)} {diff < 0 ? `+${diff * -1}` : ""}</span>
+                  <span className="text-foreground text-xl">{formatCapturedPieces(blackCaptured)} {diff < 0 ? `+${diff * -1}` : ""}</span>
                 </div>
             </div>
-            <GameHistory history={game.history()} />
+            <GameHistory  history={history} />
                 
         </div>
         
