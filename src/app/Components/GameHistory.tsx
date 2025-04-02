@@ -42,7 +42,7 @@ const GameHistory = ({ history }: { history: string[] }) => {
         }
     }
     return (
-        <div className="flex flex-col gap-3 w-1/4 bg-secondaryBackground p-4 rounded h-1/2 overflow-auto mt-9"> 
+        <div className="flex flex-col gap-3 w-full bg-secondaryBackground p-4 rounded h-1/2 overflow-auto"> 
           
             {Object.entries(moveHistory).map(([moveNumber, moves]) => (
                 <div key={moveNumber} className="flex flex-row justify-between items-center text-foreground w-full">
