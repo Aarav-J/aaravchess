@@ -80,17 +80,35 @@ const ChessComponent = () => {
         // copyBoardStyle[to] = { backgroundColor: "#ACA249" };
 
         const loadedGame: Chess = new Chess(moveToUse?.after)
+       
+        // console.log(newWhiteCaptured)
+        // console.log(newBlackCaptured)
         if (loadedGame.inCheck()) {
+                
                 colorInCheck = loadedGame.turn() === "b" ? "black" : "white";
                 const position = findPiece(loadedGame, 'k', loadedGame.turn())[0] as string;
                 copyBoardStyle[position] = {backgroundColor: "#FF424B"};
                 // newStatus = color === "black" ? "Black is in check" : "White is in check";
+                if(loadedGame.isGameOver()) { 
+                    copyBoardStyle[findPiece(loadedGame, 'k', loadedGame.turn() === 'w' ? 'b' : 'w')[0]] = {backgroundColor: "#B2FF99"}
+                }
         }
+
+        
+        // setWhiteCaptured(newWhiteCaptured);
+        // setBlackCaptured(newBlackCaptured);
+        // setDiff(calculateMaterial(newWhiteCaptured) - calculateMaterial(newBlackCaptured));
         setBoardStyle(copyBoardStyle)
 
     }
     useEffect(() => { 
+        const newWhiteCaptured = get_captured_pieces(game, "white", loadedIndex)
+        const newBlackCaptured = get_captured_pieces(game, "black", loadedIndex)
+        console.log(newWhiteCaptured)
         setBoardStyle({})
+        setWhiteCaptured(newWhiteCaptured)
+        setBlackCaptured(newBlackCaptured)
+        setDiff(calculateMaterial(newWhiteCaptured) - calculateMaterial(newBlackCaptured))
         console.log("loaded fen", loadedFen)
         const moves = game.history({verbose: true});
         console.log(moves)
@@ -141,8 +159,7 @@ const ChessComponent = () => {
             copyHistory.push(game.history()[game.history().length - 1]);
             const color = game.turn() === "w" ? "white" : "black";
             
-            const newWhiteCaptured = get_captured_pieces(game, "white");
-            const newBlackCaptured = get_captured_pieces(game, "black");
+            
             
             // let copyBoardStyle: BoardStyle = {
             //     [result.from]: { backgroundColor: "#CFD17B" }, 
@@ -174,9 +191,9 @@ const ChessComponent = () => {
             setLoadedFen(game.fen());
             setLoadedIndex(game.history().length);
             setGame(game);
-            setWhiteCaptured(newWhiteCaptured);
-            setBlackCaptured(newBlackCaptured);
-            setDiff(calculateMaterial(newWhiteCaptured) - calculateMaterial(newBlackCaptured));
+            // setWhiteCaptured(newWhiteCaptured);
+            // setBlackCaptured(newBlackCaptured);
+            // setDiff(calculateMaterial(newWhiteCaptured) - calculateMaterial(newBlackCaptured));
             // setStatus( newStatus);
             setInCheck(newInCheck);
             setHistory(copyHistory);

@@ -10,9 +10,9 @@ const characters = {
     "q": "♛",
     "k": "♚",
 }
-export const get_captured_pieces = (game: Chess, color: 'white' | 'black') => { 
+export const get_captured_pieces = (game: Chess, color: 'white' | 'black', loadedIndex: number) => { 
     const captured: Record<ChessPiece, number> = {'p': 0, 'r': 0, 'n': 0, 'b': 0, 'q': 0, 'k': 0};
-    const history = game.history({verbose: true});
+    const history = game.history({verbose: true}).splice(0, loadedIndex);
     const colorChar = color === 'white' ? 'b' : 'w'; // If we're white, we capture black pieces and vice versa
     
     for (const move of history) { 
