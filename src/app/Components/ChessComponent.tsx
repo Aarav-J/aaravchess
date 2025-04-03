@@ -81,7 +81,23 @@ const ChessComponent = () => {
         setBoardStyle(copyBoardStyle);
 
     }, [loadedIndex])
-    
+    useEffect(() => { 
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if(event.key === 'ArrowRight') { 
+                console.log("right pressed")
+                setLoadedIndex(prev => Math.min(prev + 1, game.history().length));
+                event.preventDefault();
+            } else if (event.key === 'ArrowLeft') {
+                setLoadedIndex(prev => Math.max(prev - 1, 0));
+                event.preventDefault();
+            }
+            event.preventDefault();
+        }
+        document.addEventListener('keydown', handleKeyDown);
+        return () => { 
+            document.removeEventListener('keydown', handleKeyDown);
+        }
+    }, [game])
     const makeMove = (move: Move) => {
         if (game.fen() !== loadedFen) { 
             console.log(game.fen())
