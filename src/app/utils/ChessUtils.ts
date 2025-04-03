@@ -10,8 +10,8 @@ const characters = {
     "q": "♛",
     "k": "♚",
 }
-export const get_captured_pieces = (game: Chess, color: 'white' | 'black', captured: Record<ChessPiece, number>) => { 
-    // const captured: Record<ChessPiece, number> = {'p': 0, 'r': 0, 'n': 0, 'b': 0, 'q': 0, 'k': 0};
+export const get_captured_pieces = (game: Chess, color: 'white' | 'black') => { 
+    const captured: Record<ChessPiece, number> = {'p': 0, 'r': 0, 'n': 0, 'b': 0, 'q': 0, 'k': 0};
     const history = game.history({verbose: true});
     const colorChar = color === 'white' ? 'b' : 'w'; // If we're white, we capture black pieces and vice versa
     

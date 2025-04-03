@@ -2,6 +2,7 @@
 // import { Move } from "chess.js";
 import { useEffect, useState } from "react";
 import useStore from "../store";
+import { CaretDoubleLeft, CaretDoubleRight, CaretLeft, CaretRight } from "@phosphor-icons/react";
 type MoveHistory = { 
     [key: number]: string[];
 }
@@ -42,9 +43,9 @@ const GameHistory = ({ history, selectedIndex, setSelectedIndex }: { history: st
         }
     }
     return (
-        <div className="flex flex-col gap-3 w-full bg-secondaryBackground p-4 rounded h-1/2 overflow-auto"> 
-            
-            {Object.entries(moveHistory).map(([moveNumber, moves]) => {
+        <div className="flex flex-col gap-3 w-full justify-between  bg-secondaryBackground rounded h-3/4"> 
+            <div className="flex flex-col gap-3 w-full justify-start items-center overflow-auto p-4 h-7/8 custom-scrollbar">
+                {Object.entries(moveHistory).map(([moveNumber, moves]) => {
                 
                 return (
                 <div key={moveNumber} className="flex flex-row justify-between items-center text-foreground w-full">
@@ -53,14 +54,39 @@ const GameHistory = ({ history, selectedIndex, setSelectedIndex }: { history: st
                         <span onClick={() => { 
                             setSelectedIndex((2* Number(moveNumber))-1);
                             
-                        }}className={`${(2* Number(moveNumber))-1 ===  history.length || (2* Number(moveNumber))-1 === selectedIndex ? "py-1 px-1 rounded-sm shadow-bottom font-bold" : "cursor-pointer hover:text-red-400"} ${(2* Number(moveNumber))-1 ===  history.length ? "bg-activeBackground" : (2* Number(moveNumber))-1 === selectedIndex ? "bg-activeHistoryNotationBackground" : ""}`}>{formatPrint(moves[0])}</span>
+                        }}className={`hover:text-purple ${(2* Number(moveNumber))-1 ===  history.length || (2* Number(moveNumber))-1 === selectedIndex ? "py-1 px-1 rounded-sm shadow-bottom font-bold" : "cursor-pointer"} ${(2* Number(moveNumber))-1 ===  history.length ? "bg-activeBackground" : (2* Number(moveNumber))-1 === selectedIndex ? "bg-activeHistoryNotationBackground" : ""}`}>{formatPrint(moves[0])}</span>
                         {moves[1] && <span onClick={() => { 
                             setSelectedIndex(2* Number(moveNumber));
-                        }}className={`${Number(moveNumber) === Object.entries(moveHistory).length || (2* Number(moveNumber)) === selectedIndex ? "py-1 px-1 rounded-sm shadow-bottom font-bold" : "cursor-pointer hover:text-red-400"} ${Number(moveNumber) === Object.entries(moveHistory).length ? "bg-activeBackground" : (2* Number(moveNumber)) === selectedIndex ? "bg-activeHistoryNotationBackground" : ""}`}>{formatPrint(moves[1])}</span>}
+                        }}className={`hover:text-purple ${Number(moveNumber) === Object.entries(moveHistory).length || (2* Number(moveNumber)) === selectedIndex ? "py-1 px-1 rounded-sm shadow-bottom font-bold" : "cursor-pointer "} ${Number(moveNumber) === Object.entries(moveHistory).length ? "bg-activeBackground" : (2* Number(moveNumber)) === selectedIndex ? "bg-activeHistoryNotationBackground" : ""}`}>{formatPrint(moves[1])}</span>}
                     </div>
                 </div> ) }
-            )}
+                )}
 
+            </div>
+            <div className="flex flex-row justify-center items-center w-full h-1/8 text-foreground">
+                <div className={`${selectedIndex == 0 ? "text-gray-600" : ""} w-1/4 py-4 flex items-center justify-center cursor-pointer`} onClick={() => { 
+                    setSelectedIndex(0);
+                }}><CaretDoubleLeft size={32} weight="bold"/></div>
+                <div className={`${selectedIndex == 0 ? "text-gray-600" : ""} w-1/4 py-4 flex items-center justify-center cursor-pointer`} onClick={() => { 
+                    if(selectedIndex > 0) { 
+                        setSelectedIndex(selectedIndex - 1);
+                    }   
+                    
+                }}><CaretLeft size={32} weight="bold"/></div>
+                <div className={`${selectedIndex == history.length ? "text-gray-600" : ""} w-1/4 py-4 flex items-center justify-center cursor-pointer`} onClick={() => { 
+                    if(selectedIndex < history.length){
+                        setSelectedIndex(selectedIndex + 1)
+                    };
+                }}><CaretRight size={32} weight="bold"/></div>
+                <div className={`${selectedIndex == history.length ? "text-gray-600" : ""} w-1/4 py-4 flex items-center justify-center cursor-pointer`} onClick={() => { 
+                    setSelectedIndex(history.length);
+                }}><CaretDoubleRight size={32} weight="bold"/></div>
+                {/* <button className="w-1/4"><CaretDoubleLeft size={32} weight="fill"/></button>
+                <button className="w-1/4"><CaretLeft size={32} weight="fill"/></button>
+                <button className="w-1/4"><CaretRight size={32} weight="fill"/></button>
+                <button className="w-1/4"><CaretDoubleRight size={32} weight="fill"/></button> */}
+            </div>
+            
             
             
         </div>

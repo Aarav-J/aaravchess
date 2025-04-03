@@ -96,8 +96,8 @@ const ChessComponent = () => {
             copyHistory.push(game.history()[game.history().length - 1]);
             const color = game.turn() === "w" ? "white" : "black";
             
-            const newWhiteCaptured = get_captured_pieces(game, "white", whiteCaptured);
-            const newBlackCaptured = get_captured_pieces(game, "black", blackCaptured);
+            const newWhiteCaptured = get_captured_pieces(game, "white");
+            const newBlackCaptured = get_captured_pieces(game, "black");
             
             // let copyBoardStyle: BoardStyle = {
             //     [result.from]: { backgroundColor: "#CFD17B" }, 
@@ -194,14 +194,7 @@ const ChessComponent = () => {
             <div className="flex flex-col w-1/4 h-full justify-between py-9 items-start">
                 <GameHistory  history={history} setSelectedIndex={setLoadedIndex} selectedIndex={loadedIndex}/>
                 <div className="flex flex-col gap-4">
-                    <button className="text-foreground cursor-pointer disabled:text-red-400" onClick={() => { 
-                        // alert("my name is fatty")
-                        setLoadedIndex(loadedIndex + 1)
-                    }} disabled={loadedIndex == game.history().length}>+</button>
-                    <button className="text-foreground cursor-pointer disabled:text-red-400" onClick={() => { 
-                        // alert("my name is fatty")
-                        setLoadedIndex(loadedIndex - 1)
-                    }} disabled={loadedIndex == 0 }>-</button>
+               
                     <button className="text-gray-300 cursor-pointer" onClick={restart}><ArrowCounterClockwise size={20} weight="bold"/></button>
                     <button className="text-gray-300 cursor-pointer" onClick={() => { 
                         if(settings.switchOrientation) { 

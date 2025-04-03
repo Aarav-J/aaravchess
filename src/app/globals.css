@@ -31,6 +31,7 @@
   --color-activeBackground: #ffffff26; 
   --color-activeHistoryNotationBackground: #aa149f8a;
   --shadow-bottom: inset 0px -4px 0px 0px #4d518459; 
+  --color-purple: #CF6BDD;
   --color-secondaryBackground: #1E1E2F;
   --font-sans: "Inter", sans-serif;
   --font-mono: "Courier New", monospace;
@@ -38,4 +39,31 @@
 
 body { 
   background: var(--color-background); 
+}
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+  /* color: #b01fb0 */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 4px;
+  /* padding: 4px;  */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #4d518459;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--color-activeHistoryNotationBackground);
+}
+
+/* Firefox compatibility */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #4d518459 transparent;
 }
