@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from "react";
 import { Chessboard } from "react-chessboard";
-import { Chess, Color, Piece } from "chess.js";
+import { Chess, Color, Piece, Move } from "chess.js";
 import useStore, { States } from "../store";
 import Image from "next/image";
 import { get_captured_pieces,formatCapturedPieces, calculateMaterial, findPiece } from "../utils/ChessUtils";
@@ -11,12 +11,12 @@ import SettingsModal from "./SettingsModal";
 import { ArrowClockwise, ArrowCounterClockwise, DeviceRotate } from "@phosphor-icons/react";
 import { BoardOrientation } from "react-chessboard/dist/chessboard/types";
 
-// import { useEffect } from "react";
-type Move = { 
-    from: string;
-    to: string;
-    promotion?: string;
-}
+// // import { useEffect } from "react";
+// type Move = { 
+//     from: string;
+//     to: string;
+//     promotion?: string;
+// }
 type BoardStyle = {
     [key: string]: {[key: string] : string};
 }
@@ -47,11 +47,11 @@ const ChessComponent = () => {
     // const [bKing, setBKing] = useState("e8");
     // const [wKing, setWKing] = useState("e1");
     const [inCheck, setInCheck] = useState('none'); 
-    const changeBoardStyle = (square: string) => {
-        const copyBoardStyle: BoardStyle = {...boardStyle}; 
-        copyBoardStyle[square] = { backgroundColor: "#FF424B" };
-        setBoardStyle(copyBoardStyle);
-    }
+    // const changeBoardStyle = (square: string) => {
+    //     const copyBoardStyle: BoardStyle = {...boardStyle}; 
+    //     copyBoardStyle[square] = { backgroundColor: "#FF424B" };
+    //     setBoardStyle(copyBoardStyle);
+    // }
     const restart =() => { 
         setLoadedFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
         setLoadedIndex(0);
@@ -64,7 +64,33 @@ const ChessComponent = () => {
         // setStatus("white to move");
         setInCheck('none');
     }
+
+    const updateBoardStyle = () => { 
+        // const latestMove = game?.history({verbose: true}).slice(-1)[0];
+        // const [from, to] = [latestMove?.from, latestMove?.to];
+        let colorInCheck = "none"
+        let copyBoardStyle: BoardStyle = {}
+        // const indexedMove = game?.history({verbose: true})[loadedIndex]; 
+        // let moveToUse: Move | null = null
+        const moveToUse: Move = game?.history().length == loadedIndex ? game?.history({verbose: true}).slice(-1)[0] : game?.history({verbose: true})[loadedIndex-1]
+        // latestMove === indexedMove ? moveToUse = latestMove : moveToUse = indexedMove 
+        copyBoardStyle[moveToUse?.from]   = { backgroundColor: "#CFD17B" };
+        copyBoardStyle[moveToUse?.to] = { backgroundColor: "#ACA249" };
+        // copyBoardStyle[from] = { backgroundColor: "#CFD17B" };
+        // copyBoardStyle[to] = { backgroundColor: "#ACA249" };
+
+        const loadedGame: Chess = new Chess(moveToUse?.after)
+        if (loadedGame.inCheck()) {
+                colorInCheck = loadedGame.turn() === "b" ? "black" : "white";
+                const position = findPiece(loadedGame, 'k', loadedGame.turn())[0] as string;
+                copyBoardStyle[position] = {backgroundColor: "#FF424B"};
+                // newStatus = color === "black" ? "Black is in check" : "White is in check";
+        }
+        setBoardStyle(copyBoardStyle)
+
+    }
     useEffect(() => { 
+        setBoardStyle({})
         console.log("loaded fen", loadedFen)
         const moves = game.history({verbose: true});
         console.log(moves)
@@ -75,12 +101,15 @@ const ChessComponent = () => {
         console.log(selectedFen)
         const selectedSpecificNotation = [selectedMove?.from, selectedMove?.to]
         setLoadedFen(selectedFen);
-        let copyBoardStyle: BoardStyle = {};
-        copyBoardStyle[selectedSpecificNotation[0]] = { backgroundColor: "#CFD17B" };
-        copyBoardStyle[selectedSpecificNotation[1]] = { backgroundColor: "#ACA249" };
-        setBoardStyle(copyBoardStyle);
+        // let copyBoardStyle: BoardStyle = {};
+        // copyBoardStyle[selectedSpecificNotation[0]] = { backgroundColor: "#CFD17B" };
+        // copyBoardStyle[selectedSpecificNotation[1]] = { backgroundColor: "#ACA249" };
+        // setBoardStyle(copyBoardStyle);
+        updateBoardStyle()
 
     }, [loadedIndex])
+
+    useEffect(() => { })
     useEffect(() => { 
         const handleKeyDown = (event: KeyboardEvent) => {
             if(event.key === 'ArrowRight') { 
@@ -107,7 +136,7 @@ const ChessComponent = () => {
         }
         const result = game.move(move);
         let copyHistory = [...history];
-        
+        // setBoardStyle({})
         if (result) {
             copyHistory.push(game.history()[game.history().length - 1]);
             const color = game.turn() === "w" ? "white" : "black";
@@ -119,15 +148,15 @@ const ChessComponent = () => {
             //     [result.from]: { backgroundColor: "#CFD17B" }, 
             //     [result.to]: { backgroundColor: "#ACA249" }
             // };
-            let copyBoardStyle: BoardStyle = {}; 
+            // let copyBoardStyle: BoardStyle = {}; 
             
             let newStatus = `${color} to move`;
             let newInCheck = 'none';
             
             if (game.inCheck()) {
                 newInCheck = color === "black" ? "black" : "white";
-                const position = findPiece(game, 'k', color[0] as Color)[0] as string;
-                copyBoardStyle[position] = {backgroundColor: "#FF424B"};
+                // const position = findPiece(game, 'k', color[0] as Color)[0] as string;
+                // copyBoardStyle[position] = {backgroundColor: "#FF424B"};
                 newStatus = color === "black" ? "Black is in check" : "White is in check";
             }
             
@@ -151,7 +180,8 @@ const ChessComponent = () => {
             // setStatus( newStatus);
             setInCheck(newInCheck);
             setHistory(copyHistory);
-            setBoardStyle(copyBoardStyle);
+            // setBoardStyle(copyBoardStyle);
+            
             console.log(game.history({verbose: true}))
         }
         
