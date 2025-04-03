@@ -1,5 +1,5 @@
 'use client'
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Chessboard } from "react-chessboard";
 import { Chess, Color, Piece } from "chess.js";
 import useStore, { States } from "../store";
@@ -38,9 +38,11 @@ const ChessComponent = () => {
     const [blackCaptured, setBlackCaptured] = useState({p: 0, r: 0, n: 0, b: 0, q: 0, k: 0});
     const [boardStyle, setBoardStyle] = useState<BoardStyle>({});
     const [modalOpen, setModalOpen] = useState(false);
+    const [loadedFen, setLoadedFen] = useState("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"); 
+    const [loadedIndex, setLoadedIndex] = useState(0);
     const [diff, setDiff] = useState(0);
     const [history, setHistory] = useState<string[]>([]);
-    const [status, setStatus] = useState("white to move"); 
+    // const [status, setStatus] = useState("white to move"); 
     const [orientation, setOrientation] = useState("white");
     // const [bKing, setBKing] = useState("e8");
     // const [wKing, setWKing] = useState("e1");
@@ -51,100 +53,90 @@ const ChessComponent = () => {
         setBoardStyle(copyBoardStyle);
     }
     const restart =() => { 
+        setLoadedFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+        setLoadedIndex(0);
         setGame(new Chess());
         setWhiteCaptured({p: 0, r: 0, n: 0, b: 0, q: 0, k: 0});
         setBlackCaptured({p: 0, r: 0, n: 0, b: 0, q: 0, k: 0});
         setBoardStyle({});
         setDiff(0);
         setHistory([]);
-        setStatus("white to move");
+        // setStatus("white to move");
         setInCheck('none');
     }
-    const changeBoardStyleToDefault = (piece: string, square: string) => {
-        console.log(square, piece) 
-        let copyBoardStyle: BoardStyle = {...boardStyle};
-        console.log(JSON.stringify(copyBoardStyle))
-        // // Check if the square has the red highlighting from dragging
-        // if (copyBoardStyle[square]?.backgroundColor === "#FF424B") {
-        //     // If this is a king in check, keep it highlighted red
-        //     const isKingInCheck = 
-        //         (inCheck !== 'none') && 
-        //         (square === findPiece(game, 'k', inCheck[0] as Color)[0]);
-                
-        //     if (isKingInCheck) {
-        //         // Keep the red highlighting for a king in check
-        //         return;
-        //     }
-            
-        //     // For last move highlighting (yellow/brown)
-        //     const isFromLastMove = 
-        //         Object.entries(copyBoardStyle).some(([key, style]) => 
-        //             key === square && 
-        //             (style.backgroundColor === "#CFD17B" || style.backgroundColor === "#ACA249")
-        //         );
-                
-        //     if (isFromLastMove) {
-        //         // Preserve the last move highlighting
-        //         return;
-        //     }
-            
-        //     // Otherwise, remove the highlighting
-        //     delete copyBoardStyle[square];
-        //     setBoardStyle(copyBoardStyle);
-        // }
-    }
+    useEffect(() => { 
+        console.log("loaded fen", loadedFen)
+        const moves = game.history({verbose: true});
+        console.log(moves)
+        const selectedMove = moves[loadedIndex-1];
+        console.log(loadedIndex)
+        console.log(selectedMove)
+        const selectedFen = selectedMove ? selectedMove.after : "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+        console.log(selectedFen)
+        const selectedSpecificNotation = [selectedMove?.from, selectedMove?.to]
+        setLoadedFen(selectedFen);
+        let copyBoardStyle: BoardStyle = {};
+        copyBoardStyle[selectedSpecificNotation[0]] = { backgroundColor: "#CFD17B" };
+        copyBoardStyle[selectedSpecificNotation[1]] = { backgroundColor: "#ACA249" };
+        setBoardStyle(copyBoardStyle);
+
+    }, [loadedIndex])
+    
     const makeMove = (move: Move) => {
-        
-        const copyGame = new Chess(game.fen());
-        const result = copyGame.move(move);
+        if (game.fen() !== loadedFen) { 
+            console.log(game.fen())
+            console.log(loadedFen)
+            // alert("can not make moves while looking at game history")
+            return null; 
+        }
+        const result = game.move(move);
         let copyHistory = [...history];
+        
         if (result) {
-            // console.log(copyGame.history())
-            copyHistory.push(copyGame.history()[0]);
-            const color = copyGame.turn() === "w" ? "white" : "black";
+            copyHistory.push(game.history()[game.history().length - 1]);
+            const color = game.turn() === "w" ? "white" : "black";
             
-           
-            const newWhiteCaptured = get_captured_pieces(copyGame, "white", whiteCaptured);
-            const newBlackCaptured = get_captured_pieces(copyGame, "black", blackCaptured);
+            const newWhiteCaptured = get_captured_pieces(game, "white", whiteCaptured);
+            const newBlackCaptured = get_captured_pieces(game, "black", blackCaptured);
             
-          
-            let copyBoardStyle: BoardStyle = {
-                [result.from]: { backgroundColor: "#CFD17B" }, 
-                [result.to]: { backgroundColor: "#ACA249" }
-            };
+            // let copyBoardStyle: BoardStyle = {
+            //     [result.from]: { backgroundColor: "#CFD17B" }, 
+            //     [result.to]: { backgroundColor: "#ACA249" }
+            // };
+            let copyBoardStyle: BoardStyle = {}; 
             
-           
             let newStatus = `${color} to move`;
             let newInCheck = 'none';
             
-            if (copyGame.inCheck()) {
+            if (game.inCheck()) {
                 newInCheck = color === "black" ? "black" : "white";
-                const position = findPiece(copyGame, 'k', color[0] as Color)[0] as string;
+                const position = findPiece(game, 'k', color[0] as Color)[0] as string;
                 copyBoardStyle[position] = {backgroundColor: "#FF424B"};
                 newStatus = color === "black" ? "Black is in check" : "White is in check";
             }
             
-            if (copyGame.isGameOver()) {
-                if (copyGame.isCheckmate()) {
+            if (game.isGameOver()) {
+                if (game.isCheckmate()) {
                     newStatus = color === "black" ? "White wins" : "Black wins";
-                } else if (copyGame.isStalemate()) {
+                } else if (game.isStalemate()) {
                     newStatus = "Stalemate";
-                } else if (copyGame.isInsufficientMaterial()) {
+                } else if (game.isInsufficientMaterial()) {
                     newStatus = "Insufficient material";
-                } else if (copyGame.isThreefoldRepetition()) {
+                } else if (game.isThreefoldRepetition()) {
                     newStatus = "Threefold repetition";
                 }
             }
-            
-            
-            setGame(copyGame);
+            setLoadedFen(game.fen());
+            setLoadedIndex(game.history().length);
+            setGame(game);
             setWhiteCaptured(newWhiteCaptured);
             setBlackCaptured(newBlackCaptured);
             setDiff(calculateMaterial(newWhiteCaptured) - calculateMaterial(newBlackCaptured));
-            setStatus(newStatus);
+            // setStatus( newStatus);
             setInCheck(newInCheck);
             setHistory(copyHistory);
             setBoardStyle(copyBoardStyle);
+            console.log(game.history({verbose: true}))
         }
         
         return result;
@@ -160,8 +152,11 @@ const ChessComponent = () => {
         // setGame(game);
         return true;
     }
+
+
     return ( 
         <div className="flex w-full flex-row gap-4 justify-center items-start  h-full py-6">
+            {/* <h1 className="text-foreground">{game.history().length}</h1> */}
             {modalOpen && <SettingsModal modalOpen={modalOpen} setModalOpen={setModalOpen}/>}
             <div className={`flex ${settings.switchOrientation ? (game.turn() === "w" ? "flex-col" : "flex-col-reverse") : orientation == "white" ? "flex-col" : "flex-col-reverse"} gap-3 justify-center items-center w-1/2 h-full`}>
                 <div className="flex flex-row gap-2 justify-between items-center w-full px-2">
@@ -173,7 +168,7 @@ const ChessComponent = () => {
                 </div>
                 
                 <Chessboard
-                    position={game.fen()}
+                    position={loadedFen}
                     onPieceDrop={onDrop}
                     // boardWidth={400}
                     customSquareStyles={boardStyle}
@@ -197,8 +192,16 @@ const ChessComponent = () => {
                 </div>
             </div>
             <div className="flex flex-col w-1/4 h-full justify-between py-9 items-start">
-                <GameHistory  history={history} />
+                <GameHistory  history={history} setSelectedIndex={setLoadedIndex} selectedIndex={loadedIndex}/>
                 <div className="flex flex-col gap-4">
+                    <button className="text-foreground cursor-pointer disabled:text-red-400" onClick={() => { 
+                        // alert("my name is fatty")
+                        setLoadedIndex(loadedIndex + 1)
+                    }} disabled={loadedIndex == game.history().length}>+</button>
+                    <button className="text-foreground cursor-pointer disabled:text-red-400" onClick={() => { 
+                        // alert("my name is fatty")
+                        setLoadedIndex(loadedIndex - 1)
+                    }} disabled={loadedIndex == 0 }>-</button>
                     <button className="text-gray-300 cursor-pointer" onClick={restart}><ArrowCounterClockwise size={20} weight="bold"/></button>
                     <button className="text-gray-300 cursor-pointer" onClick={() => { 
                         if(settings.switchOrientation) { 

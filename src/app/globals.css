@@ -29,6 +29,7 @@
   --color-background: #0A0812;
   --color-foreground: #EBEBEF;
   --color-activeBackground: #ffffff26; 
+  --color-activeHistoryNotationBackground: #aa149f8a;
   --shadow-bottom: inset 0px -4px 0px 0px #4d518459; 
   --color-secondaryBackground: #1E1E2F;
   --font-sans: "Inter", sans-serif;

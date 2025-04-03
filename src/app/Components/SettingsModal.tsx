@@ -17,12 +17,13 @@ const SettingsModal = ({modalOpen, setModalOpen}: {modalOpen: boolean, setModalO
                                 type="checkbox" 
                                 checked={settings.switchOrientation} 
                                 onChange={(e) => setSettings({...settings, switchOrientation: e.target.checked})} 
+                                className="cursor-pointer"
                             />
                             <span className="ml-2 text-sm text-foreground">Switch Orientation</span>
                         </label>
                     </div>
                     <button 
-                        className="mt-4 bg-blue-500 text-white py-2 px-4 rounded" 
+                        className="mt-4 bg-blue-500 text-white py-2 px-4 rounded cursor-pointer" 
                         onClick={() => setModalOpen(false)}
                     >
                         Close
