@@ -8,8 +8,9 @@ import { get_captured_pieces,formatCapturedPieces, calculateMaterial, findPiece 
 import GameHistory from "./GameHistory";
 import SettingsButton from "./SettingsButton";
 import SettingsModal from "./SettingsModal";
-import { ArrowClockwise, ArrowCounterClockwise, DeviceRotate } from "@phosphor-icons/react";
+import { ArrowClockwise, ArrowCounterClockwise, DeviceRotate, X } from "@phosphor-icons/react";
 import { BoardOrientation } from "react-chessboard/dist/chessboard/types";
+import toast from "react-hot-toast";
 
 // // import { useEffect } from "react";
 // type Move = { 
@@ -52,7 +53,8 @@ const ChessComponent = () => {
     //     copyBoardStyle[square] = { backgroundColor: "#FF424B" };
     //     setBoardStyle(copyBoardStyle);
     // }
-    const restart =() => { 
+    const restart =() => {
+        
         setLoadedFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
         setLoadedIndex(0);
         setGame(new Chess());
@@ -152,7 +154,31 @@ const ChessComponent = () => {
             // alert("can not make moves while looking at game history")
             return null; 
         }
-        const result = game.move(move);
+        // const result = game.move(move);
+        let result: Move | null = null; 
+        try { 
+            result = game.move(move);
+        } catch (error) { 
+            // console.log(error)
+            toast(
+                <div className="">
+                    <span className="text-foreground">Invalid Move</span>
+                </div>, 
+                { 
+                    icon: <X size={20} weight="bold" className="text-foreground"/>,
+                    style: { 
+                        backgroundColor: "#1E1E2D",
+                        color: "#FFFFFF",
+                        padding: '16px',
+                        border: '1px solid #4B5563',
+                        borderRadius: '8px',
+                    },
+                    duration: 1000,
+                
+                }, 
+            )
+        }
+       
         let copyHistory = [...history];
         // setBoardStyle({})
         if (result) {
